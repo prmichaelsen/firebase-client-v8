@@ -25,12 +25,12 @@ Set these environment variables in your project:
 
 ```env
 # Firebase Client Configuration (Public - safe to expose)
-PUBLIC_FIREBASE_API_KEY=AIzaSy...
-PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-PUBLIC_FIREBASE_PROJECT_ID=your-project-id
-PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
-PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789
-PUBLIC_FIREBASE_APP_ID=1:123456789:web:abc123
+FIREBASE_API_KEY=AIzaSy...
+FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+FIREBASE_MESSAGING_SENDER_ID=123456789
+FIREBASE_APP_ID=1:123456789:web:abc123
 ```
 
 ## Quick Start
