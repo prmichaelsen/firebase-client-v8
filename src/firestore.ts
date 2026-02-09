@@ -26,8 +26,14 @@ import {
   type WriteBatch,
   type Transaction,
 } from 'firebase/firestore';
-import { firestore } from './index';
+import { getFirestore } from './index';
 import type { FirestoreDocument, FirestoreFilter } from './types';
+
+/**
+ * Get firestore instance
+ * @internal
+ */
+const getFirestoreInstance = () => getFirestore();
 
 /**
  * Get a document by ID
@@ -48,7 +54,7 @@ export async function getDocument(
   collectionPath: string,
   documentId: string
 ): Promise<FirestoreDocument | null> {
-  const docRef = doc(firestore, collectionPath, documentId);
+  const docRef = doc(getFirestoreInstance(), collectionPath, documentId);
   const docSnap: DocumentSnapshot = await getDoc(docRef);
   
   if (!docSnap.exists()) {
@@ -81,7 +87,7 @@ export async function getDocuments(
   collectionPath: string,
   ...constraints: QueryConstraint[]
 ): Promise<FirestoreDocument[]> {
-  const collectionRef = collection(firestore, collectionPath);
+  const collectionRef = collection(getFirestoreInstance(), collectionPath);
   const q = query(collectionRef, ...constraints);
   const querySnapshot: QuerySnapshot = await getDocs(q);
   
@@ -112,7 +118,7 @@ export async function addDocument(
   collectionPath: string,
   data: DocumentData
 ): Promise<string> {
-  const collectionRef = collection(firestore, collectionPath);
+  const collectionRef = collection(getFirestoreInstance(), collectionPath);
   const docRef = await addDoc(collectionRef, data);
   return docRef.id;
 }
@@ -152,7 +158,7 @@ export async function setDocument(
   data: DocumentData,
   options?: SetOptions
 ): Promise<void> {
-  const docRef = doc(firestore, collectionPath, documentId);
+  const docRef = doc(getFirestoreInstance(), collectionPath, documentId);
   await setDoc(docRef, data, options || {});
 }
 
@@ -176,7 +182,7 @@ export async function updateDocument(
   documentId: string,
   data: Partial<DocumentData>
 ): Promise<void> {
-  const docRef = doc(firestore, collectionPath, documentId);
+  const docRef = doc(getFirestoreInstance(), collectionPath, documentId);
   await updateDoc(docRef, data);
 }
 
@@ -196,7 +202,7 @@ export async function deleteDocument(
   collectionPath: string,
   documentId: string
 ): Promise<void> {
-  const docRef = doc(firestore, collectionPath, documentId);
+  const docRef = doc(getFirestoreInstance(), collectionPath, documentId);
   await deleteDoc(docRef);
 }
 
@@ -262,7 +268,7 @@ export async function queryDocuments(
  * ```
  */
 export function createBatch(): WriteBatch {
-  return writeBatch(firestore);
+  return writeBatch(getFirestoreInstance());
 }
 
 /**
@@ -307,7 +313,7 @@ export async function commitBatch(batch: WriteBatch): Promise<void> {
 export async function runFirestoreTransaction<T>(
   updateFunction: (transaction: Transaction) => Promise<T>
 ): Promise<T> {
-  return runTransaction(firestore, updateFunction);
+  return runTransaction(getFirestoreInstance(), updateFunction);
 }
 
 /**
@@ -335,11 +341,11 @@ export async function getDocumentsWithPagination(
   lastDoc?: FirestoreDocument,
   ...constraints: QueryConstraint[]
 ): Promise<FirestoreDocument[]> {
-  const collectionRef = collection(firestore, collectionPath);
+  const collectionRef = collection(getFirestoreInstance(), collectionPath);
   const queryConstraints = [...constraints, limit(pageSize)];
   
   if (lastDoc) {
-    const lastDocRef = doc(firestore, collectionPath, lastDoc.id);
+    const lastDocRef = doc(getFirestoreInstance(), collectionPath, lastDoc.id);
     const lastDocSnap = await getDoc(lastDocRef);
     queryConstraints.push(startAfter(lastDocSnap));
   }
@@ -393,7 +399,7 @@ export async function documentExists(
   collectionPath: string,
   documentId: string
 ): Promise<boolean> {
-  const docRef = doc(firestore, collectionPath, documentId);
+  const docRef = doc(getFirestoreInstance(), collectionPath, documentId);
   const docSnap = await getDoc(docRef);
   return docSnap.exists();
 }

@@ -19,12 +19,36 @@ A Firebase client library optimized for Cloudflare Workers and edge runtimes. Us
 npm install @prmichaelsen/firebase-client-v8
 ```
 
-## Environment Variables
+## Initialization
 
-Set these environment variables in your project:
+The library supports two initialization patterns:
+
+### Option 1: Explicit Initialization (Recommended)
+
+```typescript
+import { initializeFirebase } from '@prmichaelsen/firebase-client-v8';
+
+// Initialize with explicit configuration
+initializeFirebase({
+  apiKey: import.meta.env.FIREBASE_API_KEY,
+  authDomain: import.meta.env.FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.FIREBASE_APP_ID,
+});
+```
+
+**Benefits:**
+- ✅ Explicit and clear
+- ✅ Works with any bundler (Vite, Webpack, etc.)
+- ✅ Easy to test and mock
+- ✅ No magic environment variable reading
+
+### Option 2: Auto-initialization from Environment Variables
 
 ```env
-# Firebase Client Configuration (Public - safe to expose)
+# Set these environment variables
 FIREBASE_API_KEY=AIzaSy...
 FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
 FIREBASE_PROJECT_ID=your-project-id
@@ -33,10 +57,29 @@ FIREBASE_MESSAGING_SENDER_ID=123456789
 FIREBASE_APP_ID=1:123456789:web:abc123
 ```
 
+```typescript
+// No initialization needed - auto-loads from process.env on first use
+import { signIn } from '@prmichaelsen/firebase-client-v8';
+
+const userCredential = await signIn('user@example.com', 'password123');
+```
+
+**Note:** Auto-initialization uses `process.env`, which works in Node.js and some bundlers but may not work in all environments (e.g., Vite requires `import.meta.env`).
+
 ## Quick Start
 
 ```typescript
-import { signIn, getDocument, uploadFile } from '@prmichaelsen/firebase-client-v8';
+import { initializeFirebase, signIn, getDocument, uploadFile } from '@prmichaelsen/firebase-client-v8';
+
+// Initialize (recommended)
+initializeFirebase({
+  apiKey: import.meta.env.FIREBASE_API_KEY,
+  authDomain: import.meta.env.FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.FIREBASE_APP_ID,
+});
 
 // Sign in
 const userCredential = await signIn('user@example.com', 'password123');

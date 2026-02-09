@@ -18,7 +18,13 @@ import {
   type UploadTaskSnapshot,
   type FullMetadata,
 } from 'firebase/storage';
-import { storage } from './index';
+import { getFirebaseStorage } from './index';
+
+/**
+ * Get storage instance
+ * @internal
+ */
+const getStorage = () => getFirebaseStorage();
 
 /**
  * Upload a file to Firebase Storage
@@ -38,7 +44,7 @@ export async function uploadFile(
   path: string,
   file: File | Blob
 ): Promise<string> {
-  const storageRef: StorageReference = ref(storage, path);
+  const storageRef: StorageReference = ref(getStorage(), path);
   const uploadResult: UploadResult = await uploadBytes(storageRef, file);
   return getDownloadURL(uploadResult.ref);
 }
@@ -65,7 +71,7 @@ export async function uploadFileWithMetadata(
   file: File | Blob,
   metadata?: Record<string, any>
 ): Promise<string> {
-  const storageRef: StorageReference = ref(storage, path);
+  const storageRef: StorageReference = ref(getStorage(), path);
   const uploadResult: UploadResult = await uploadBytes(storageRef, file, metadata);
   return getDownloadURL(uploadResult.ref);
 }
@@ -83,7 +89,7 @@ export async function uploadFileWithMetadata(
  * ```
  */
 export async function getFileUrl(path: string): Promise<string> {
-  const storageRef: StorageReference = ref(storage, path);
+  const storageRef: StorageReference = ref(getStorage(), path);
   return getDownloadURL(storageRef);
 }
 
@@ -99,7 +105,7 @@ export async function getFileUrl(path: string): Promise<string> {
  * ```
  */
 export async function deleteFile(path: string): Promise<void> {
-  const storageRef: StorageReference = ref(storage, path);
+  const storageRef: StorageReference = ref(getStorage(), path);
   await deleteObject(storageRef);
 }
 
@@ -116,7 +122,7 @@ export async function deleteFile(path: string): Promise<void> {
  * ```
  */
 export async function listFiles(path: string): Promise<string[]> {
-  const storageRef: StorageReference = ref(storage, path);
+  const storageRef: StorageReference = ref(getStorage(), path);
   const result: ListResult = await listAll(storageRef);
   return result.items.map(item => item.fullPath);
 }
@@ -138,7 +144,7 @@ export async function listAllItems(path: string): Promise<{
   files: string[];
   directories: string[];
 }> {
-  const storageRef: StorageReference = ref(storage, path);
+  const storageRef: StorageReference = ref(getStorage(), path);
   const result: ListResult = await listAll(storageRef);
   
   return {
@@ -183,7 +189,7 @@ export async function uploadFileWithProgress(
   onProgress?: UploadProgressCallback,
   metadata?: Record<string, any>
 ): Promise<string> {
-  const storageRef: StorageReference = ref(storage, path);
+  const storageRef: StorageReference = ref(getStorage(), path);
   const uploadTask: UploadTask = uploadBytesResumable(storageRef, file, metadata);
   
   return new Promise((resolve, reject) => {
@@ -250,7 +256,7 @@ export function createUploadTask(
   file: File | Blob,
   metadata?: Record<string, any>
 ): UploadTask {
-  const storageRef: StorageReference = ref(storage, path);
+  const storageRef: StorageReference = ref(getStorage(), path);
   return uploadBytesResumable(storageRef, file, metadata);
 }
 
@@ -268,7 +274,7 @@ export function createUploadTask(
  * ```
  */
 export async function getFileMetadata(path: string): Promise<FullMetadata> {
-  const storageRef: StorageReference = ref(storage, path);
+  const storageRef: StorageReference = ref(getStorage(), path);
   return getMetadata(storageRef);
 }
 
@@ -291,7 +297,7 @@ export async function updateFileMetadata(
   path: string,
   metadata: Record<string, any>
 ): Promise<FullMetadata> {
-  const storageRef: StorageReference = ref(storage, path);
+  const storageRef: StorageReference = ref(getStorage(), path);
   return updateMetadata(storageRef, metadata);
 }
 
@@ -308,7 +314,7 @@ export async function updateFileMetadata(
  * ```
  */
 export function getStorageRef(path: string): StorageReference {
-  return ref(storage, path);
+  return ref(getStorage(), path);
 }
 
 /**

@@ -9,49 +9,155 @@ import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
 import { initializeFirestore, CACHE_SIZE_UNLIMITED, type Firestore } from 'firebase/firestore';
 import { getStorage, type FirebaseStorage } from 'firebase/storage';
-import { firebaseConfig, validateConfig } from './config';
-
-// Validate configuration on import
-validateConfig();
+import { setFirebaseConfig, getFirebaseConfig, validateConfig } from './config';
+import type { FirebaseConfig } from './types';
 
 /**
- * Initialize Firebase app (singleton pattern)
- * Returns existing app if already initialized
+ * Firebase app instance (initialized after calling initializeFirebase)
  */
-export const app: FirebaseApp = getApps().length === 0 
-  ? initializeApp(firebaseConfig) 
-  : getApp();
+let app: FirebaseApp | null = null;
 
 /**
- * Initialize Firestore with Cloudflare Workers compatibility
- * 
- * Key settings:
- * - experimentalForceLongPolling: Use REST instead of WebSocket
- * - experimentalAutoDetectLongPolling: Don't auto-detect (always use REST)
- * - cacheSizeBytes: Use unlimited cache for edge environments
- * - ignoreUndefinedProperties: Ignore undefined properties in documents
+ * Firestore instance (initialized after calling initializeFirebase)
  */
-export const firestore: Firestore = initializeFirestore(app, {
-  experimentalForceLongPolling: true,
-  experimentalAutoDetectLongPolling: false,
-  cacheSizeBytes: CACHE_SIZE_UNLIMITED,
-  ignoreUndefinedProperties: true,
+let firestoreInstance: Firestore | null = null;
+
+/**
+ * Firebase Authentication instance (initialized after calling initializeFirebase)
+ */
+let authInstance: Auth | null = null;
+
+/**
+ * Firebase Storage instance (initialized after calling initializeFirebase)
+ */
+let storageInstance: FirebaseStorage | null = null;
+
+/**
+ * Initialize Firebase with explicit configuration (optional)
+ *
+ * If not called, the library will attempt to auto-initialize from environment variables
+ * on first use. Explicit initialization is recommended for better control.
+ *
+ * @param config - Firebase configuration object
+ * @returns Firebase app instance
+ *
+ * @example
+ * ```typescript
+ * import { initializeFirebase } from '@prmichaelsen/firebase-client-v8';
+ *
+ * // Explicit initialization (recommended)
+ * initializeFirebase({
+ *   apiKey: import.meta.env.FIREBASE_API_KEY,
+ *   authDomain: import.meta.env.FIREBASE_AUTH_DOMAIN,
+ *   projectId: import.meta.env.FIREBASE_PROJECT_ID,
+ *   storageBucket: import.meta.env.FIREBASE_STORAGE_BUCKET,
+ *   messagingSenderId: import.meta.env.FIREBASE_MESSAGING_SENDER_ID,
+ *   appId: import.meta.env.FIREBASE_APP_ID,
+ * });
+ * ```
+ */
+export function initializeFirebase(config: FirebaseConfig): FirebaseApp {
+  // Validate configuration
+  validateConfig(config);
+  
+  // Store configuration
+  setFirebaseConfig(config);
+  
+  // Initialize Firebase services
+  return ensureInitialized();
+}
+
+/**
+ * Ensure Firebase is initialized
+ * Auto-initializes from env vars if not explicitly initialized
+ *
+ * @internal
+ */
+function ensureInitialized(): FirebaseApp {
+  if (!app) {
+    const config = getFirebaseConfig(); // Will load from env if not set
+    app = getApps().length === 0 ? initializeApp(config) : getApp();
+    
+    // Initialize Firestore with Cloudflare Workers compatibility
+    firestoreInstance = initializeFirestore(app, {
+      experimentalForceLongPolling: true,
+      experimentalAutoDetectLongPolling: false,
+      cacheSizeBytes: CACHE_SIZE_UNLIMITED,
+      ignoreUndefinedProperties: true,
+    });
+    
+    // Initialize Auth and Storage
+    authInstance = getAuth(app);
+    storageInstance = getStorage(app);
+  }
+  
+  return app;
+}
+
+/**
+ * Get Firebase app instance
+ * Auto-initializes if not already initialized
+ */
+export function getFirebaseApp(): FirebaseApp {
+  return ensureInitialized();
+}
+
+/**
+ * Get Firestore instance
+ * Auto-initializes if not already initialized
+ */
+export function getFirestore(): Firestore {
+  ensureInitialized();
+  return firestoreInstance!;
+}
+
+/**
+ * Get Firebase Authentication instance
+ * Auto-initializes if not already initialized
+ */
+export function getFirebaseAuth(): Auth {
+  ensureInitialized();
+  return authInstance!;
+}
+
+/**
+ * Get Firebase Storage instance
+ * Auto-initializes if not already initialized
+ */
+export function getFirebaseStorage(): FirebaseStorage {
+  ensureInitialized();
+  return storageInstance!;
+}
+
+/**
+ * Legacy exports for backward compatibility
+ * These will throw errors if Firebase is not initialized
+ */
+export const firestore = new Proxy({} as Firestore, {
+  get: (_target, prop) => {
+    const instance = getFirestore();
+    return instance[prop as keyof Firestore];
+  }
 });
 
-/**
- * Firebase Authentication instance
- */
-export const auth: Auth = getAuth(app);
+export const auth = new Proxy({} as Auth, {
+  get: (_target, prop) => {
+    const instance = getFirebaseAuth();
+    return instance[prop as keyof Auth];
+  }
+});
 
-/**
- * Firebase Storage instance
- */
-export const storage: FirebaseStorage = getStorage(app);
+export const storage = new Proxy({} as FirebaseStorage, {
+  get: (_target, prop) => {
+    const instance = getFirebaseStorage();
+    return instance[prop as keyof FirebaseStorage];
+  }
+});
 
 /**
  * Export Firebase app as default
  */
-export default app;
+export default getFirebaseApp;
 
 /**
  * Re-export all auth functions

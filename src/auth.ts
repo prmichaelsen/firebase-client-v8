@@ -24,8 +24,14 @@ import {
   type UserCredential,
   type AuthProvider,
 } from 'firebase/auth';
-import { auth } from './index';
+import { getFirebaseAuth } from './index';
 import type { AuthStateCallback } from './types';
+
+/**
+ * Get auth instance
+ * @internal
+ */
+const getAuth = () => getFirebaseAuth();
 
 /**
  * Sign in with email and password
@@ -41,7 +47,7 @@ import type { AuthStateCallback } from './types';
  * ```
  */
 export async function signIn(email: string, password: string): Promise<UserCredential> {
-  return signInWithEmailAndPassword(auth, email, password);
+  return signInWithEmailAndPassword(getAuth(), email, password);
 }
 
 /**
@@ -58,7 +64,7 @@ export async function signIn(email: string, password: string): Promise<UserCrede
  * ```
  */
 export async function signUp(email: string, password: string): Promise<UserCredential> {
-  return createUserWithEmailAndPassword(auth, email, password);
+  return createUserWithEmailAndPassword(getAuth(), email, password);
 }
 
 /**
@@ -74,7 +80,7 @@ export async function signUp(email: string, password: string): Promise<UserCrede
  * ```
  */
 export async function resetPassword(email: string): Promise<void> {
-  return sendPasswordResetEmail(auth, email);
+  return sendPasswordResetEmail(getAuth(), email);
 }
 
 /**
@@ -89,7 +95,7 @@ export async function resetPassword(email: string): Promise<void> {
  * ```
  */
 export async function logout(): Promise<void> {
-  return signOut(auth);
+  return signOut(getAuth());
 }
 
 /**
@@ -113,7 +119,7 @@ export async function logout(): Promise<void> {
  * ```
  */
 export function onAuthChange(callback: AuthStateCallback): () => void {
-  return onAuthStateChanged(auth, callback);
+  return onAuthStateChanged(getAuth(), callback);
 }
 
 /**
@@ -130,7 +136,7 @@ export function onAuthChange(callback: AuthStateCallback): () => void {
  * ```
  */
 export async function getCurrentUser(): Promise<User | null> {
-  return auth.currentUser;
+  return getAuth().currentUser;
 }
 
 /**
@@ -148,7 +154,7 @@ export async function getCurrentUser(): Promise<User | null> {
  * ```
  */
 export async function getIdToken(): Promise<string | null> {
-  const user = auth.currentUser;
+  const user = getAuth().currentUser;
   if (!user) return null;
   return user.getIdToken();
 }
@@ -166,7 +172,7 @@ export async function getIdToken(): Promise<string | null> {
  * ```
  */
 export async function refreshIdToken(): Promise<string | null> {
-  const user = auth.currentUser;
+  const user = getAuth().currentUser;
   if (!user) return null;
   return user.getIdToken(true); // Force refresh
 }
@@ -184,7 +190,7 @@ export async function refreshIdToken(): Promise<string | null> {
  */
 export async function signInWithGoogle(): Promise<UserCredential> {
   const provider = new GoogleAuthProvider();
-  return signInWithPopup(auth, provider);
+  return signInWithPopup(getAuth(), provider);
 }
 
 /**
@@ -200,7 +206,7 @@ export async function signInWithGoogle(): Promise<UserCredential> {
  */
 export async function signInWithGithub(): Promise<UserCredential> {
   const provider = new GithubAuthProvider();
-  return signInWithPopup(auth, provider);
+  return signInWithPopup(getAuth(), provider);
 }
 
 /**
@@ -216,7 +222,7 @@ export async function signInWithGithub(): Promise<UserCredential> {
  */
 export async function signInWithFacebook(): Promise<UserCredential> {
   const provider = new FacebookAuthProvider();
-  return signInWithPopup(auth, provider);
+  return signInWithPopup(getAuth(), provider);
 }
 
 /**
@@ -232,7 +238,7 @@ export async function signInWithFacebook(): Promise<UserCredential> {
  */
 export async function signInWithTwitter(): Promise<UserCredential> {
   const provider = new TwitterAuthProvider();
-  return signInWithPopup(auth, provider);
+  return signInWithPopup(getAuth(), provider);
 }
 
 /**
@@ -250,7 +256,7 @@ export async function signInWithTwitter(): Promise<UserCredential> {
  * ```
  */
 export async function signInWithProvider(provider: AuthProvider): Promise<UserCredential> {
-  return signInWithPopup(auth, provider);
+  return signInWithPopup(getAuth(), provider);
 }
 
 /**
@@ -267,7 +273,7 @@ export async function signInWithProvider(provider: AuthProvider): Promise<UserCr
  * ```
  */
 export async function signInWithProviderRedirect(provider: AuthProvider): Promise<void> {
-  return signInWithRedirect(auth, provider);
+  return signInWithRedirect(getAuth(), provider);
 }
 
 /**
@@ -283,7 +289,7 @@ export async function signInWithProviderRedirect(provider: AuthProvider): Promis
  * ```
  */
 export async function signInWithToken(token: string): Promise<UserCredential> {
-  return signInWithCustomToken(auth, token);
+  return signInWithCustomToken(getAuth(), token);
 }
 
 /**
@@ -298,7 +304,7 @@ export async function signInWithToken(token: string): Promise<UserCredential> {
  * ```
  */
 export async function sendVerificationEmail(): Promise<void> {
-  const user = auth.currentUser;
+  const user = getAuth().currentUser;
   if (!user) throw new Error('No user is currently signed in');
   return sendEmailVerification(user);
 }
@@ -320,7 +326,7 @@ export async function updateUserProfile(profile: {
   displayName?: string | null;
   photoURL?: string | null;
 }): Promise<void> {
-  const user = auth.currentUser;
+  const user = getAuth().currentUser;
   if (!user) throw new Error('No user is currently signed in');
   return updateProfile(user, profile);
 }
@@ -336,7 +342,7 @@ export async function updateUserProfile(profile: {
  * ```
  */
 export async function updateUserEmail(newEmail: string): Promise<void> {
-  const user = auth.currentUser;
+  const user = getAuth().currentUser;
   if (!user) throw new Error('No user is currently signed in');
   return updateEmail(user, newEmail);
 }
@@ -352,7 +358,7 @@ export async function updateUserEmail(newEmail: string): Promise<void> {
  * ```
  */
 export async function updateUserPassword(newPassword: string): Promise<void> {
-  const user = auth.currentUser;
+  const user = getAuth().currentUser;
   if (!user) throw new Error('No user is currently signed in');
   return updatePassword(user, newPassword);
 }
@@ -367,7 +373,7 @@ export async function updateUserPassword(newPassword: string): Promise<void> {
  * ```
  */
 export async function deleteUserAccount(): Promise<void> {
-  const user = auth.currentUser;
+  const user = getAuth().currentUser;
   if (!user) throw new Error('No user is currently signed in');
   return deleteUser(user);
 }
