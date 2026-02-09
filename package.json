@@ -25,8 +25,16 @@
     "authentication",
     "storage"
   ],
-  "author": "",
+  "author": "prmichaelsen",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prmichaelsen/firebase-client-v8"
+  },
+  "bugs": {
+    "url": "https://github.com/prmichaelsen/firebase-client-v8/issues"
+  },
+  "homepage": "https://github.com/prmichaelsen/firebase-client-v8#readme",
   "dependencies": {
     "firebase": "^10.7.0"
   },
